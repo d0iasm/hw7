@@ -218,3 +218,8 @@ func (b *Board) ValidMoves() []Move {
 	}
 	return moves
 }
+
+func (b *Board) greedy(valid []Move) []Move {
+	var moves []Move
+	return moves
+}
