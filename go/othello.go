@@ -8,7 +8,7 @@ import (
 
 	"encoding/json"
 	"fmt"
-	// "math/rand"
+	"math"
 	"net/http"
 
 	"golang.org/x/net/context"
@@ -285,24 +285,26 @@ func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 	return result
 }
 
-// func (b *Board) minmax(depth int) int {
-	// if depth < 1{
+func (b *Board) Score(depth int) int {
+	if depth < 1{
+		return 1
 		// return b.CountBlack() - b.CountWhite()
-	// }
-	// best := b.Player().MinScore()
-	// for _, move := range b.ValidMoves() {
-		// nextBoard := b.Clone().DoMove(move)
-		// score := nextBoard.Score(depth - 1)
-		// switch b.Next {
-		// case Black:
-			// if score > best{
-				// best = score
-			// }
-		// case White:
-			// if score < best{
-				// best = score
-			// }
-		// }
-	// }
-// q	return best
-// 
+	}
+	best := math.MinInt8
+	for _, move := range b.ValidMoves() {
+		nextBoard, _ := b.Exec(move)
+		score := nextBoard.Score(depth - 1)
+		switch b.Next {
+		case Black:
+			if score > best{
+				best = score
+			}
+		case White:
+			if score < best{
+				best = score
+			}
+		}
+	}
+	return best
+}
+
