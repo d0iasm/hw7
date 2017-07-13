@@ -52,7 +52,7 @@ Paste JSON here:<p/><textarea name=json cols=80 rows=24></textarea>
 		return
 	}
 	// move := moves[rand.Intn(len(moves))]
-	move := board.selectCenter(moves)
+	move := board.selectNearCenter(moves)
 	fmt.Fprintf(w, "[%d,%d]", move.Where[0], move.Where[1])
 }
 
@@ -220,12 +220,41 @@ func (b *Board) ValidMoves() []Move {
 	return moves
 }
 
-func (b *Board) selectCenter(moves []Move) Move {
-	center := moves[0]
+func isFourCorners(move Move) bool {
+	if move.Where[0] == 1 && move.Where[1] == 1 {
+		return true
+	}else if move.Where[0] == 1 && move.Where[1] == 8 {
+		return true
+	}else if move.Where[0] == 8 && move.Where[1] == 1 {
+		return true
+	}else if move.Where[0] == 8 && move.Where[1] == 8 {
+		return true
+	}
+	return false
+}
+
+func distanceFromCenter(current, center [2]int) int {
+	distance := 1
+	for distance < 3{
+		if (center[0]-distance) <= current[0] && current[0] <= (center[1]+distance) && (center[0]-distance) <= current[1] && current[1] <= (center[1]+distance){
+			return distance
+		}
+		distance += 1
+	}
+	return distance
+}
+
+func (b *Board) selectNearCenter(moves []Move) Move {
+	result := moves[0]
+	min := 4
+	center := [2]int{4,5}
 	for _, move := range moves {
-		if center.Where[0] + center.Where[1] > move.Where[0] + move.Where[1]{
-			center = move
+		if isFourCorners(move){
+			return move
+		}
+		if distanceFromCenter(move.Where, center) < min {
+			result = move
 		}
 	}
-	return center
+	return result
 }
