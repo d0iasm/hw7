@@ -54,12 +54,13 @@ Paste JSON here:<p/><textarea name=json cols=80 rows=24></textarea>
 		return
 	}
 	steps := board.stepsCount()
+	log.Infof(ctx, "current steps: %v", steps)
 	move := board.strategy(ctx, moves, steps)
 	fmt.Fprintf(w, "[%d,%d]", move.Where[0], move.Where[1])
 }
 
 func (b *Board) stepsCount() int {
-	count := 4
+	count := 0
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++{
 			if b.Pieces[i][j] != 0 {
@@ -235,7 +236,7 @@ func (b *Board) ValidMoves() []Move {
 }
 
 func (b *Board) strategy(ctx context.Context, moves []Move, steps int) Move {
-	if steps < 24 {
+	if steps < 32 {
 		return b.selectNearCenter(ctx, moves)
 	}
 	return b.minmax(ctx, moves)
@@ -261,7 +262,6 @@ func distanceFromCenter(ctx context.Context, current, center [2]int) int {
 		if (center[0]-distance) <= current[0] && current[0] <= (center[1]+distance) && (center[0]-distance) <= current[1] && current[1] <= (center[1]+distance){
 			return distance
 		}
-		log.Infof(ctx, "current: %v, distance: %v", current, distance)
 		distance += 1
 	}
 	return distance
@@ -279,7 +279,7 @@ func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 			result = move
 			min = dist
 		}
-		log.Infof(ctx, "result: %v, current min: %v", result, min)
+		log.Infof(ctx, "result: %v, distance from center: %v", result, min)
 	}
 	return result
 }
@@ -296,25 +296,30 @@ func (b *Board) count(color Piece) int {
 	return count
 }
 
-func (b *Board) Score(depth int) (int, Move) {
+func (b *Board) Score(ctx context.Context, depth int) (int, Move) {
 	var bestMove Move
 	if depth < 1{
+		log.Infof(ctx, "depth<1 score: %v, bestMove: %v", b.count(Black) - b.count(White), bestMove)
 		return b.count(Black) - b.count(White), bestMove
 	}
 	best := math.MinInt8
 	for _, move := range b.ValidMoves() {
 		nextBoard, _ := b.Exec(move)
-		score, _ := nextBoard.Score(depth - 1)
+		log.Infof(ctx, "current depth: %v, nextBoard: %v", depth, nextBoard)	
+		score, _ := nextBoard.Score(ctx, depth - 1)
+		log.Infof(ctx, "score: %v", score)	
 		switch b.Next {
 		case Black:
 			if score > best{
 				best = score
 				bestMove = move
+				log.Infof(ctx, "Black best score: %v bestMove: %v", best, bestMove)
 			}
 		case White:
 			if score < best{
 				best = score
 				bestMove = move
+				log.Infof(ctx, "White best score: %v bestMove: %v", best, bestMove)
 			}
 		}
 	}
@@ -327,6 +332,7 @@ func (b *Board) minmax(ctx context.Context, moves []Move) Move {
 			return move
 		}
 	}
-	_, move := b.Score(3)
+	best, move := b.Score(ctx, 2)
+	log.Infof(ctx, " = best: %v move: %v", best, move)
 	return move
 }
