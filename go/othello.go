@@ -51,7 +51,8 @@ Paste JSON here:<p/><textarea name=json cols=80 rows=24></textarea>
 		fmt.Fprintf(w, "PASS")
 		return
 	}
-	move := moves[rand.Intn(len(moves))]
+	// move := moves[rand.Intn(len(moves))]
+	move := board.selectCenter(moves)
 	fmt.Fprintf(w, "[%d,%d]", move.Where[0], move.Where[1])
 }
 
@@ -219,7 +220,12 @@ func (b *Board) ValidMoves() []Move {
 	return moves
 }
 
-func (b *Board) greedy(valid []Move) []Move {
-	var moves []Move
-	return moves
+func (b *Board) selectCenter(moves []Move) Move {
+	center := moves[0]
+	for _, move := range moves {
+		if center.Where[0] + center.Where[1] > move.Where[0] + move.Where[1]{
+			center = move
+		}
+	}
+	return center
 }
