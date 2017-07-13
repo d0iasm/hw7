@@ -62,7 +62,7 @@ func (b *Board) stepsCount() int {
 	count := 4
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++{
-			if b.Pieces[i][j] != 0{
+			if b.Pieces[i][j] != 0 {
 				count++
 			}
 		}
@@ -238,8 +238,7 @@ func (b *Board) strategy(ctx context.Context, moves []Move, steps int) Move {
 	if steps < 24 {
 		return b.selectNearCenter(ctx, moves)
 	}
-	var move Move
-	return move
+	return b.minmax(ctx, moves)
 }
 
 
@@ -285,10 +284,21 @@ func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 	return result
 }
 
+func (b *Board) count(color Piece) int {
+	count := 0
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++{
+			if b.Pieces[i][j] == color {
+				count++
+			}
+		}
+	}
+	return count
+}
+
 func (b *Board) Score(depth int) int {
 	if depth < 1{
-		return 1
-		// return b.CountBlack() - b.CountWhite()
+		return b.count(Black) - b.count(White)
 	}
 	best := math.MinInt8
 	for _, move := range b.ValidMoves() {
@@ -308,3 +318,11 @@ func (b *Board) Score(depth int) int {
 	return best
 }
 
+func (b *Board) minmax(ctx context.Context, moves []Move) Move {
+	for _, move := range moves {
+		if isFourCorners(move){
+			return move
+		}
+	}
+	panic("not match")
+}
