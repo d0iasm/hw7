@@ -53,9 +53,21 @@ Paste JSON here:<p/><textarea name=json cols=80 rows=24></textarea>
 		fmt.Fprintf(w, "PASS")
 		return
 	}
-	// move := moves[rand.Intn(len(moves))]
-	move := board.selectNearCenter(ctx, moves)
+	steps := board.stepsCount()
+	move := board.strategy(ctx, moves, steps)
 	fmt.Fprintf(w, "[%d,%d]", move.Where[0], move.Where[1])
+}
+
+func (b *Board) stepsCount() int {
+	count := 4
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++{
+			if b.Pieces[i][j] != 0{
+				count++
+			}
+		}
+	}
+	return count
 }
 
 type Piece int8
@@ -222,6 +234,15 @@ func (b *Board) ValidMoves() []Move {
 	return moves
 }
 
+func (b *Board) strategy(ctx context.Context, moves []Move, steps int) Move {
+	if steps < 24 {
+		return b.selectNearCenter(ctx, moves)
+	}
+	var move Move
+	return move
+}
+
+
 func isFourCorners(move Move) bool {
 	if move.Where[0] == 1 && move.Where[1] == 1 {
 		return true
@@ -255,8 +276,7 @@ func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 		if isFourCorners(move){
 			return move
 		}
-		dist := distanceFromCenter(ctx, move.Where, center)
-		if dist < min {
+		if dist := distanceFromCenter(ctx, move.Where, center); dist < min {
 			result = move
 			min = dist
 		}
@@ -264,3 +284,25 @@ func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 	}
 	return result
 }
+
+// func (b *Board) minmax(depth int) int {
+	// if depth < 1{
+		// return b.CountBlack() - b.CountWhite()
+	// }
+	// best := b.Player().MinScore()
+	// for _, move := range b.ValidMoves() {
+		// nextBoard := b.Clone().DoMove(move)
+		// score := nextBoard.Score(depth - 1)
+		// switch b.Next {
+		// case Black:
+			// if score > best{
+				// best = score
+			// }
+		// case White:
+			// if score < best{
+				// best = score
+			// }
+		// }
+	// }
+// q	return best
+// 
