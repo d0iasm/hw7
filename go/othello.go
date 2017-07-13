@@ -10,6 +10,8 @@ import (
 	"fmt"
 	// "math/rand"
 	"net/http"
+
+	"golang.org/x/net/context"
 )
 
 func init() {
@@ -52,7 +54,7 @@ Paste JSON here:<p/><textarea name=json cols=80 rows=24></textarea>
 		return
 	}
 	// move := moves[rand.Intn(len(moves))]
-	move := board.selectNearCenter(moves)
+	move := board.selectNearCenter(ctx, moves)
 	fmt.Fprintf(w, "[%d,%d]", move.Where[0], move.Where[1])
 }
 
@@ -233,18 +235,19 @@ func isFourCorners(move Move) bool {
 	return false
 }
 
-func distanceFromCenter(current, center [2]int) int {
+func distanceFromCenter(ctx context.Context, current, center [2]int) int {
 	distance := 1
 	for distance < 3{
 		if (center[0]-distance) <= current[0] && current[0] <= (center[1]+distance) && (center[0]-distance) <= current[1] && current[1] <= (center[1]+distance){
 			return distance
 		}
+		log.Infof(ctx, "current: %v, distance: %v", current, distance)
 		distance += 1
 	}
 	return distance
 }
 
-func (b *Board) selectNearCenter(moves []Move) Move {
+func (b *Board) selectNearCenter(ctx context.Context, moves []Move) Move {
 	result := moves[0]
 	min := 4
 	center := [2]int{4,5}
@@ -252,9 +255,12 @@ func (b *Board) selectNearCenter(moves []Move) Move {
 		if isFourCorners(move){
 			return move
 		}
-		if distanceFromCenter(move.Where, center) < min {
+		dist := distanceFromCenter(ctx, move.Where, center)
+		if dist < min {
 			result = move
+			min = dist
 		}
+		log.Infof(ctx, "result: %v, current min: %v", result, min)
 	}
 	return result
 }
