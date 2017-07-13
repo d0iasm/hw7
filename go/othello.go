@@ -296,26 +296,29 @@ func (b *Board) count(color Piece) int {
 	return count
 }
 
-func (b *Board) Score(depth int) int {
+func (b *Board) Score(depth int) (int, Move) {
+	var bestMove Move
 	if depth < 1{
-		return b.count(Black) - b.count(White)
+		return b.count(Black) - b.count(White), bestMove
 	}
 	best := math.MinInt8
 	for _, move := range b.ValidMoves() {
 		nextBoard, _ := b.Exec(move)
-		score := nextBoard.Score(depth - 1)
+		score, _ := nextBoard.Score(depth - 1)
 		switch b.Next {
 		case Black:
 			if score > best{
 				best = score
+				bestMove = move
 			}
 		case White:
 			if score < best{
 				best = score
+				bestMove = move
 			}
 		}
 	}
-	return best
+	return best, bestMove
 }
 
 func (b *Board) minmax(ctx context.Context, moves []Move) Move {
@@ -324,5 +327,6 @@ func (b *Board) minmax(ctx context.Context, moves []Move) Move {
 			return move
 		}
 	}
-	panic("not match")
+	_, move := b.Score(3)
+	return move
 }
