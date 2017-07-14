@@ -321,7 +321,7 @@ func (b *Board) Score(ctx context.Context, depth int, firstMove Move) (int, Move
 				log.Infof(ctx, "White best score: %v BestMove: %v", best, bestMove)
 			}
 		}
-		if score == best && depth == 2 {
+		if score == best && depth == 3 {
 			bestMove = move
 			log.Infof(ctx, " -> current BestMove: %v", bestMove)
 			return best, bestMove
@@ -338,7 +338,7 @@ func (b *Board) minmax(ctx context.Context, moves []Move) Move {
 			return move
 		}
 	}
-	best, move = b.Score(ctx, 2, move)
+	best, move = b.Score(ctx, 3, move)
 	log.Infof(ctx, " = BestScore: %v,  move: %v", best, move)
 	return move
 }
