@@ -298,39 +298,47 @@ func (b *Board) count(color Piece) int {
 
 func (b *Board) Score(ctx context.Context, depth int, firstMove Move) (int, Move) {
 	if depth < 1{
-		log.Infof(ctx, "depth<1 score: %v, bestMove: %v", b.count(Black) - b.count(White), firstMove)
+		log.Infof(ctx, " =  score: %v, BestMove: %v", b.count(Black) - b.count(White), firstMove)
 		return b.count(Black) - b.count(White), firstMove
 	}
 	best := math.MinInt8
+	var score int
+	var bestMove Move
 	for _, move := range b.ValidMoves() {
 		nextBoard, _ := b.Exec(move)
-		log.Infof(ctx, "current depth: %v, nextBoard: %v", depth, nextBoard)	
-		score, _ := nextBoard.Score(ctx, depth - 1, firstMove)
-		log.Infof(ctx, "score: %v", score)	
+		log.Infof(ctx, "current depth: %v", depth)	
+		score, bestMove = nextBoard.Score(ctx, depth - 1, move)
+		log.Infof(ctx, "BestScore: %v, Score: %v", best, score)
 		switch b.Next {
 		case Black:
 			if score > best{
 				best = score
-				log.Infof(ctx, "Black best score: %v", best)
+				log.Infof(ctx, "Black best score: %v BestMove: %v", best, bestMove)
 			}
 		case White:
 			if score < best{
 				best = score
-				log.Infof(ctx, "White best score: %v", best)
+				log.Infof(ctx, "White best score: %v BestMove: %v", best, bestMove)
 			}
 		}
+		if score == best && depth == 2 {
+			bestMove = move
+			log.Infof(ctx, " -> current BestMove: %v", bestMove)
+			return best, bestMove
+		}
 	}
-	return best, firstMove
+	return best, bestMove
 }
 
 func (b *Board) minmax(ctx context.Context, moves []Move) Move {
 	var move Move
+	var best int
 	for _, move := range moves {
 		if isFourCorners(move){
 			return move
 		}
-		_, move = b.Score(ctx, 2, move)
-		log.Infof(ctx, " = move: %v", move)
 	}
+	best, move = b.Score(ctx, 2, move)
+	log.Infof(ctx, " = BestScore: %v,  move: %v", best, move)
 	return move
 }
